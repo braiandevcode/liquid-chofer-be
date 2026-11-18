@@ -1,0 +1,14 @@
+SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS refresh_tokens;
+DROP TABLE IF EXISTS conversation_calculations;
+DROP TABLE IF EXISTS conversation_message_images;
+DROP TABLE IF EXISTS conversation_messages;
+DROP TABLE IF EXISTS conversations;
+DROP TABLE IF EXISTS journey_history_vouchers;
+DROP TABLE IF EXISTS journey_history;
+DROP TABLE IF EXISTS user_daily_usage;
+DROP TABLE IF EXISTS user_settings;
+DROP TABLE IF EXISTS journey_drafts;
+DROP TABLE IF EXISTS journey_tombstones;
+DROP TABLE IF EXISTS users;
+SET FOREIGN_KEY_CHECKS = 1;

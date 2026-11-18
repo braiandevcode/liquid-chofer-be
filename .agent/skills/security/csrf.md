@@ -1,0 +1,13 @@
+## CSRF
+
+### RULES
+- Verify, analyze, and fix with RIGOR:
+    - every point where the app authenticates the user with credentials that the browser sends automatically (cookies, session, basic authentication) and CSRF may occur:
+    - state-changing endpoints (POST, PUT, PATCH, DELETE), including GET with side effects, login/logout, email or password change, invitations, payments, and file uploads
+    - JSON or XML APIs authenticated by cookie: verify that the protection cannot be bypassed by changing the `Content-Type` (e.g. to `text/plain` or `application/x-www-form-urlencoded`) or the method (e.g. `_method` or `X-HTTP-Method-Override`)
+    - WebSockets (if the app uses them): validate the `Origin` in the handshake and require an unpredictable token, to prevent Cross-Site WebSocket Hijacking (CSWSH) and to stop an external site from reading or sending messages with the victim's session
+    - CORS configuration: do not reflect the `Origin` without validating it, and do not combine `Access-Control-Allow-Credentials: true` with untrusted origins
+- Use unique, unpredictable anti-CSRF tokens bound to the user's session (not to a global token pool or only to the cookie): always validate them on the server, rotate them on login, send them via hidden field or custom header (e.g. `X-CSRF-Token`), and do not include them in the URL; if using double submit cookie, sign the token (HMAC) and bind it to the session.
+- Strictly validate the cases where the token, parameter, or header is missing or altered, rejecting by default (fail closed): missing, empty, other-user, expired, or reused token, parameter removed entirely, method change, and missing `Origin` or `Referer` (e.g. with `Referrer-Policy: no-referrer`); validation must never run only "if the token is present".
+- Reinforce with defense in depth: session cookies with `SameSite=Lax` or `Strict`, `Secure`, and `HttpOnly`; verification of `Origin`/`Referer` and `Sec-Fetch-Site` (Fetch Metadata); reauthentication or confirmation for sensitive actions; and fix any XSS, because it nullifies all anti-CSRF defenses.
+- If a vulnerability is detected: fix it, test with payloads (auto-submitted form or `fetch` from another origin, token removed, empty, or from another session, method and `Content-Type` change, request without `Referer`/`Origin`, and CSWSH from an external page) to confirm it has been mitigated, and report to me the finding, its location, the cause, and the fix applied.
