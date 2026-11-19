@@ -89,7 +89,6 @@ export class AuthService {
     };
   }
 
-
   // Para borrar la cookie: mismas opciones (path incluido) pero sin maxAge.
   private getRefreshClearOptions(): { httpOnly: boolean; sameSite: 'lax'; path: string; secure: boolean } {
     const { httpOnly, sameSite, path, secure } = this.getRefreshCookieOptions();
@@ -181,7 +180,7 @@ export class AuthService {
     }
 
     await this.revokeAllRefreshTokensForUser(user.id);
-    response.clearCookie(REFRESH_COOKIE_NAME, this.getRefreshCookieOptions());
+    response.clearCookie(REFRESH_COOKIE_NAME, this.getRefreshClearOptions());
     return { message: 'Cuenta eliminada correctamente.' };
   }
 
@@ -294,7 +293,7 @@ export class AuthService {
       const hash = this.hashToken(refreshTokenRaw);
       await this.refreshRepo.update({ tokenHash: hash, revokedAt: IsNull() }, { revokedAt: new Date() });
     }
-    response.clearCookie(REFRESH_COOKIE_NAME, this.getRefreshCookieOptions());
+    response.clearCookie(REFRESH_COOKIE_NAME, this.getRefreshClearOptions());
     return { message: 'Sesión cerrada correctamente.' };
   }
 }
