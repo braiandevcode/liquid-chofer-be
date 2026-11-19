@@ -5,12 +5,7 @@ import { AiService } from '../ai/ai.service.js';
 import { APP_TIME_ZONE } from '../../shared/time/app-time.js';
 import { archiveUserJourneys } from '../journeys/journey-tombstones.js';
 import { DataSource } from 'typeorm';
-
-// Dias que se conserva una cuenta eliminada logicamente antes de la purga fisica.
-const RETENTION_DAYS = 30;
-// Tope de cuentas por corrida: evita corridas largas y limites de Cloudinary.
-const BATCH_SIZE = 20;
-const DAY_MS = 24 * 60 * 60 * 1000;
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AccountPurgeService {
@@ -20,13 +15,21 @@ export class AccountPurgeService {
 
   constructor(
     private readonly usersService: UsersService,
-    private readonly dataSource:DataSource,
+    private readonly dataSource: DataSource,
     private readonly aiService: AiService,
+    private readonly configService: ConfigService
   ) { }
 
   // Corre todos los dias a las 3 AM (hora argentina).
-  @Cron(CronExpression.EVERY_MINUTE, { timeZone: APP_TIME_ZONE })
+  @Cron(CronExpression.EVERY_DAY_AT_3AM, { timeZone: APP_TIME_ZONE })
+
   async purgeExpiredAccounts(): Promise<void> {
+    // Dias que se conserva una cuenta eliminada logicamente antes de la purga fisica.
+    const RETENTION_DAYS: number = this.configService.getOrThrow('RETENTION_DAYS');
+    // Tope de cuentas por corrida: evita corridas largas y limites de Cloudinary.
+    const BATCH_SIZE: number = this.configService.getOrThrow('BATCH_SIZE');
+    const DAY_MS: number = this.configService.getOrThrow('DAY_MS');
+    
     if (this.running) return;
     this.running = true;
 

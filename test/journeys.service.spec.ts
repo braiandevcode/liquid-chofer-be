@@ -180,7 +180,7 @@ describe('JourneysService', () => {
       ).rejects.toBeInstanceOf(UnprocessableEntityException);
     });
 
-    it('qué pasa si: alcanzó el máximo total de jornadas', async () => {
+    it('qué pasa si: alcanzó el máximo de jornadas guardadas para esa fecha', async () => {
       manager.findOne.mockResolvedValue(null);
       manager.count
         .mockResolvedValueOnce(0)
@@ -188,6 +188,56 @@ describe('JourneysService', () => {
 
       await expect(service.create('user-1', baseDto())).rejects.toBeInstanceOf(
         ConflictException,
+      );
+      expect(manager.count).toHaveBeenLastCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          where: { userId: 'user-1', journeyDate: '2026-01-15' },
+          withDeleted: true,
+        }),
+      );
+      expect(manager.save).not.toHaveBeenCalled();
+    });
+
+    it('happy path: hay 3 jornadas en otra fecha y la fecha nueva está libre', async () => {
+      manager.findOne.mockResolvedValue(null);
+      // Simulo 3 guardadas en 2026-01-15 y 0 en la fecha que quiero crear.
+      manager.count.mockImplementation(
+        (
+          _entity: unknown,
+          options: { where: { journeyDate: string }; withDeleted?: boolean },
+        ) => {
+          if (!options.withDeleted) return Promise.resolve(1);
+          return Promise.resolve(
+            options.where.journeyDate === '2026-01-15' ? 3 : 0,
+          );
+        },
+      );
+
+      await expect(
+        service.create('user-1', { ...baseDto(), journeyDate: '2026-01-16' }),
+      ).resolves.toMatchObject({ journeyDate: '2026-01-16', activeSlot: 1 });
+      expect(manager.count).toHaveBeenLastCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          where: { userId: 'user-1', journeyDate: '2026-01-16' },
+          withDeleted: true,
+        }),
+      );
+      expect(manager.save).toHaveBeenCalled();
+    });
+
+    it('qué pasa si: alcanzó el tope de esa fecha y confirma reemplazo', async () => {
+      manager.findOne.mockResolvedValue(activeJourney());
+      manager.count.mockResolvedValue(3);
+
+      await expect(
+        service.create('user-1', { ...baseDto(), replaceExisting: true }),
+      ).rejects.toBeInstanceOf(ConflictException);
+      expect(manager.update).toHaveBeenCalledWith(
+        expect.anything(),
+        { id: 'journey-1' },
+        expect.objectContaining({ deleteReason: 'replaced', activeSlot: null }),
       );
       expect(manager.save).not.toHaveBeenCalled();
     });

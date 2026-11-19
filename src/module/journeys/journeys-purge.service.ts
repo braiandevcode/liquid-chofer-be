@@ -12,7 +12,7 @@ export class JourneysPurgeService {
   constructor(private readonly dataSource: DataSource) {}
 
   // Todos los dias a las 3:30 (media hora despues de la purga de cuentas).
-  @Cron('0 * * * * *', { timeZone: APP_TIME_ZONE })
+  @Cron('0 30 3 * * *', { timeZone: APP_TIME_ZONE })
   async purgeExpiredJourneys(): Promise<void> {
     if (this.running) return;
     this.running = true;

@@ -20,10 +20,10 @@ import { TRASH_RETENTION_MS } from './journey.constants.js';
 import { formatVerificationCode, generateVerificationCode, normalizeVerificationCode } from './journey-verification-code.js';
 import { JourneyTombstoneEntity } from '../../shared/entities/journey-tombstone.entity.js';
 
-// TOPE DE JORNADAS GUARDADAS POR USUARIO.
-const MAX_JOURNEYS_PER_USER = 500;
-// Tope total por usuario (vigentes + papelera): frena el ciclo crear/eliminar.
-const MAX_TOTAL_JOURNEYS_PER_USER = 3;
+// TOPE DE JORNADAS VIGENTES POR USUARIO.
+const MAX_JOURNEYS_PER_USER: number = 500;
+// Cuento vigentes + papelera por usuario y fecha para frenar el ciclo crear/eliminar de un mismo día.
+const MAX_STORED_JOURNEYS_PER_USER_PER_DATE: number = 3;
 @Injectable()
 export class JourneysService {
     private readonly logger = new Logger(JourneysService.name);
@@ -106,16 +106,20 @@ export class JourneysService {
                     );
                 }
 
-                const total: number = await manager.count(JourneyHistoryEntity, {
-                    where: { userId },
-                    withDeleted: true
-                })
+                // Cuento las guardadas para esta fecha, incluidas las de papelera.
+                const totalForDate: number = await manager.count(JourneyHistoryEntity, {
+                    where: { userId, journeyDate: dto.journeyDate },
+                    withDeleted: true,
+                });
 
-                if (total >= MAX_TOTAL_JOURNEYS_PER_USER) {
-                    throw new ConflictException('Alcanzaste el máximo de jornadas, incluida la papelera. Probá de nuevo cuando se purguen las eliminadas más antiguas.')
+                // Si llegué al tope de esa fecha, no agrego otra fila.
+                if (totalForDate >= MAX_STORED_JOURNEYS_PER_USER_PER_DATE) {
+                    throw new ConflictException(
+                        'Alcanzaste el máximo de jornadas para esa fecha, incluida la papelera. Probá de nuevo cuando se purguen las eliminadas más antiguas.',
+                    );
                 }
 
-
+                // SINO GUARDAMOS
                 const journey: JourneyHistoryEntity = await manager.save(
                     manager.create(JourneyHistoryEntity, {
                         userId,
