@@ -100,6 +100,10 @@ export class JourneyHistoryEntity {
   @Column({ name: 'replaced_by_id', type: 'uuid', nullable: true })
   replacedById!: string | null;
 
+  // Calculo de Chofia que origino la jornada (solo trazabilidad; sin FK).
+  @Column({ name: 'source_calculation_id', type: 'uuid', nullable: true })
+  sourceCalculationId!: string | null;
+
   // 1 = vigente, null = en papelera. Junto al indice unico garantiza una vigente por usuario y fecha.
   @Column({ name: 'active_slot', type: 'tinyint', unsigned: true, nullable: true, default: 1 })
   activeSlot!: number | null;

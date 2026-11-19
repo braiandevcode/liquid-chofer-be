@@ -10,6 +10,7 @@ import { CloudinaryService } from './cloudinary.services.js';
 import { ConversationMessageImageEntity } from '../../shared/entities/conversation-message-image.entity.js';
 import { ConversationCalculationEntity } from '../../shared/entities/conversation-calculation.entity.js';
 import { CalculationService } from './calculation.service.js';
+import { JourneyHistoryEntity } from '../../shared/entities/journey-history.entity.js';
 
 // Modulo de IA: chat dinamico con HuggingFace, persistencia 24hs y limites.
 @Module({
@@ -20,6 +21,7 @@ import { CalculationService } from './calculation.service.js';
       ConversationMessageImageEntity,
       ConversationCalculationEntity,
       UserDailyUsageEntity,
+      JourneyHistoryEntity,
     ]),
   ],
   controllers: [AiController],

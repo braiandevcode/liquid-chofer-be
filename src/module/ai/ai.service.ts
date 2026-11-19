@@ -26,6 +26,7 @@ import { ConversationCalculationEntity } from '../../shared/entities/conversatio
 import { ConversationMessageEntity } from '../../shared/entities/conversation-message.entity.js';
 import { ConversationMessageImageEntity } from '../../shared/entities/conversation-message-image.entity.js';
 import { UserDailyUsageEntity } from '../../shared/entities/user-daily-usage.entity.js';
+import { JourneyHistoryEntity } from '../../shared/entities/journey-history.entity.js';
 import { IAuthUser } from '../../shared/types/auth.types.js';
 import { OpenAIProvider, IChatMessage, ICalculationChatResult } from './ia.provider.js';
 import { CloudinaryService } from './cloudinary.services.js';
@@ -113,6 +114,8 @@ export class AiService {
     private readonly calculationRepository: Repository<ConversationCalculationEntity>,
     @InjectRepository(UserDailyUsageEntity)
     private readonly usageRepository: Repository<UserDailyUsageEntity>,
+    @InjectRepository(JourneyHistoryEntity)
+    private readonly journeyRepository: Repository<JourneyHistoryEntity>,
     private readonly ia: OpenAIProvider,
     private readonly cloudinary: CloudinaryService,
     private readonly calculations: CalculationService,
@@ -309,7 +312,7 @@ export class AiService {
           pendingCalculation,
           draft,
         );
-        calculationState = this.serializeCalculation(stored);
+        calculationState = await this.serializeCalculation(stored, user.id);
       }
 
       // REGISTRO EL CONSUMO DEL TURNO (USUARIO + ASISTENTE) PARA EL LIMITE DIARIO
@@ -496,7 +499,7 @@ export class AiService {
         if (calculation.messageId) {
           calculationByMessage.set(
             calculation.messageId,
-            this.serializeCalculation(calculation),
+            await this.serializeCalculation(calculation, user.id),
           );
         }
       }
@@ -857,10 +860,18 @@ export class AiService {
     return this.calculationRepository.save(entity);
   }
 
-  // ADAPTA LA ENTIDAD DE CALCULO A LA INTERFAZ QUE USA EL FRONTEND (SIN NOMBRES INTERNOS)
-  private serializeCalculation(
+  // ADAPTA LA ENTIDAD DE CALCULO A LA INTERFAZ QUE USA EL FRONTEND (SIN NOMBRES INTERNOS).
+  // LA JORNADA VIGENTE SE RESUELVE DESDE journeys (FUENTE DE VERDAD), NO DESDE UN ESTADO LOCAL.
+  private async serializeCalculation(
     calculation: ConversationCalculationEntity,
-  ): ICalculationState {
+    userId: string,
+  ): Promise<ICalculationState> {
+    const savedJourney: JourneyHistoryEntity | null = await this.journeyRepository.findOne({
+      where: { userId, sourceCalculationId: calculation.id },
+      order: { createdAt: 'DESC' },
+      select: { id: true },
+    });
+
     return {
       id: calculation.id,
       status: calculation.status,
@@ -868,6 +879,7 @@ export class AiService {
       input: this.calculations.withDerivedVehiclePercentage(calculation.input ?? {}),
       result: calculation.result ?? undefined,
       updatedAt: calculation.updatedAt,
+      savedJourneyId: savedJourney?.id ?? null,
     };
   }
 

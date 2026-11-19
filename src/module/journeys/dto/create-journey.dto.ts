@@ -9,6 +9,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  IsUUID,
   Matches,
   Max,
   MaxLength,
@@ -86,4 +87,9 @@ export class CreateJourneyDto {
   @IsOptional()
   @IsBoolean()
   readonly replaceExisting?: boolean;
+
+  // Calculo de Chofia que origino el guardado; llega solo desde el chat.
+  @IsOptional()
+  @IsUUID()
+  readonly sourceCalculationId?: string;
 }

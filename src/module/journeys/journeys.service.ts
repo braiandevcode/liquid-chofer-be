@@ -133,6 +133,7 @@ export class JourneysService {
                         gas: dto.gas,
                         petrol: dto.petrol,
                         activeSlot: 1,
+                        sourceCalculationId: dto.sourceCalculationId ?? null,
                         verificationCode: generateVerificationCode(),
                         ...result,
                     }),

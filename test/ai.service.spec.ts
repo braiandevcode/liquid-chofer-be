@@ -16,6 +16,7 @@ import type { ConversationMessageEntity } from '../src/shared/entities/conversat
 import type { ConversationMessageImageEntity } from '../src/shared/entities/conversation-message-image.entity.js';
 import type { ConversationCalculationEntity } from '../src/shared/entities/conversation-calculation.entity.js';
 import type { UserDailyUsageEntity } from '../src/shared/entities/user-daily-usage.entity.js';
+import type { JourneyHistoryEntity } from '../src/shared/entities/journey-history.entity.js';
 import type { IAuthUser } from '../src/shared/types/auth.types.js';
 
 const user: IAuthUser = {
@@ -67,6 +68,7 @@ describe('AiService', () => {
     create: ReturnType<typeof vi.fn>;
     save: ReturnType<typeof vi.fn>;
   };
+  let journeyRepo: { findOne: ReturnType<typeof vi.fn> };
   let ia: { chatWithCalculation: ReturnType<typeof vi.fn> };
   let cloudinary: {
     uploadPrivateImage: ReturnType<typeof vi.fn>;
@@ -110,6 +112,7 @@ describe('AiService', () => {
       create: vi.fn((value: unknown) => value),
       save: vi.fn(async (value: unknown) => value),
     };
+    journeyRepo = { findOne: vi.fn(async () => null) };
     ia = { chatWithCalculation: vi.fn() };
     cloudinary = {
       uploadPrivateImage: vi.fn(async () => 'folder/image'),
@@ -129,6 +132,7 @@ describe('AiService', () => {
       imageRepo as unknown as Repository<ConversationMessageImageEntity>,
       calculationRepo as unknown as Repository<ConversationCalculationEntity>,
       usageRepo as unknown as Repository<UserDailyUsageEntity>,
+      journeyRepo as unknown as Repository<JourneyHistoryEntity>,
       ia as unknown as OpenAIProvider,
       cloudinary as unknown as CloudinaryService,
       new CalculationService(),

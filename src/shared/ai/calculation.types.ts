@@ -89,4 +89,6 @@ export interface ICalculationState {
   input: Partial<ICalculationInput>;
   result?: ICalculationResult;
   updatedAt: Date;
+  // Jornada activa que se guardo desde este calculo; el backend la resuelve.
+  savedJourneyId?: string | null;
 }

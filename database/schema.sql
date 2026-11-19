@@ -157,6 +157,7 @@ CREATE TABLE IF NOT EXISTS `journey_history` (
   `deleted_at`      TIMESTAMP NULL DEFAULT NULL,
   `delete_reason`   VARCHAR(10) NULL DEFAULT NULL,
   `replaced_by_id`  VARCHAR(36) NULL DEFAULT NULL,
+  `source_calculation_id` VARCHAR(36) NULL DEFAULT NULL,
   `active_slot`     TINYINT UNSIGNED NULL DEFAULT 1,
   `verification_code` CHAR(16) NOT NULL,
   `created_at`      DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
