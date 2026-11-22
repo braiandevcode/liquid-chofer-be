@@ -1,10 +1,9 @@
-// Un solo lugar para decidir si corremos en producción: evita que CORS,
-// cookies y SQL se comporten distinto segun dónde se lea NODE_ENV.
-const NON_PRODUCTION = new Set(['development', 'dev', 'test']);
+// EVITAR QUE CORS, COOIES Y SQL SE COMPORTEN DISTINTOS SEGUN DONDE SE LEA NODE_ENV
+const NON_PRODUCTION: Set<string> = new Set(['development', 'dev', 'test']);
 
-// Seguro por defecto: si NODE_ENV no está definido o es desconocido,
-// el sistema se comporta como producción.
-export function isProduction(): boolean {
-  const value = (process.env.NODE_ENV ?? '').trim().toLowerCase();
-  return !NON_PRODUCTION.has(value);
+// DEFINO FUNCION PARA SABER SI NODE_ENV NO ESTA DEFINIDO O ES DESCONOCIDO EL SISTEMA SE COMPORTE COMO PRODUCCION
+export const isProduction = (): boolean => {
+  const value:string = (process.env.NODE_ENV ?? '').trim().toLowerCase();
+
+  return !NON_PRODUCTION.has(value); //LO NIEGO PORQUE LA FUNCION EVALUA SI ESTA EN PRODUCCION
 }

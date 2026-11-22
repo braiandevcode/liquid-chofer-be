@@ -1,6 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { v2 as cloudinary } from 'cloudinary';
+import { isConversationFolderPath } from './conversation-image-path.js';
 
 // Todas las imagenes del chat se suben con este tipo de entrega (privado, URL firmada).
 const DELIVERY_TYPE = 'authenticated';
@@ -20,7 +21,7 @@ export const buildPrivateImageUploadOptions = (
   folderMode: TFolderMode,
   upload: IPrivateImageUpload,
 ) => {
-  const isDynamic = folderMode === 'dynamic';
+  const isDynamic: boolean = folderMode === 'dynamic';
 
   return {
     public_id: isDynamic
@@ -92,12 +93,10 @@ export class CloudinaryService implements OnModuleInit {
     });
   }
 
-  // Ruta valida de la carpeta de UNA conversacion (evita borrar carpetas mas amplias por error).
-  private static readonly CONVERSATION_FOLDER_RE = /^liquid-chofer\/users\/[^/]+\/conversations\/[^/]+$/;
-
   // Borra la carpeta de una conversacion. Llamar DESPUES de borrar sus imagenes.
+  // La validacion evita borrar carpetas mas amplias por error y respeta el entorno actual.
   async deleteConversationFolder(folderPath: string): Promise<void> {
-    if (!CloudinaryService.CONVERSATION_FOLDER_RE.test(folderPath)) {
+    if (!isConversationFolderPath(folderPath)) {
       throw new Error('Ruta de carpeta de conversacion invalida.');
     }
     await cloudinary.api.delete_folder(folderPath);

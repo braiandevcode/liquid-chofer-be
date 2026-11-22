@@ -12,7 +12,7 @@ API del panel de Liquid Chofer: sesión con Firebase, ajustes, jornadas, borrado
 
 Copiar `.env.example` a `.env` y completar los valores. Los secretos no se versionan.
 
-Variables principales: `NODE_ENV`, `CORS_ORIGIN`, `PORT`, `DB_*`, `FIREBASE_*`, `JWT_SECRET`, `JWT_ACCESS_EXPIRES_IN`, `JWT_EXPIRES_IN`, `MAX_AGE`, `CLOUDINARY_*`, `IA_*`, `URL_IA`, `AI_DAILY_LIMIT`.
+Variables principales: `NODE_ENV`, `CORS_ORIGIN`, `PORT`, `DB_*`, `FIREBASE_*`, `JWT_SECRET`, `JWT_ACCESS_EXPIRES_IN`, `JWT_EXPIRES_IN`, `MAX_AGE`, `CLOUDINARY_*`, `IA_*`, `URL_IA`, `AI_DAILY_LIMIT`, `TIME_PURGE_RF_TOKEN`, `BATCH_SIZE`, `RETENTION_DAYS`, `DAY_MS`.
 
 En producción, `NODE_ENV=production` y `CORS_ORIGIN` son obligatorios (orígenes explícitos separados por coma, sin `*`). Si `NODE_ENV` no está definido, la app se comporta como producción: cookies `Secure` y sin sentencias SQL múltiples.
 
@@ -35,8 +35,17 @@ pnpm migration:run  # migraciones en desarrollo
 2. `pnpm release` (ejecuta las migraciones desde `dist`)
 3. `pnpm start:prod`
 
-Healthcheck: `GET /api/v1/health` → `{ "status": "ok" }`.
+Healthcheck: `GET /api/v1/health` → `{ "status": "ok" }`. Ejemplo: `curl http://localhost:3000/api/v1/health`.
 
 ## Endpoints
 
 Base `/api/v1`. Módulos: `auth`, `settings`, `journeys`, `journey-draft`, `verify`, `ai` y `health`. Las rutas están centralizadas en `src/core/config/config.endpoints.ts`.
+
+## Documentación
+
+- [Reglas del proyecto](./.agent/AGENTS.md)
+- [Guía de documentación](./.agent/skills/documentation.md)
+
+## Licencia
+
+Uso privado. El `package.json` declara `"license": "UNLICENSED"`.

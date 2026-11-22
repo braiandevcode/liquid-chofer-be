@@ -285,6 +285,7 @@ describe('JourneysService', () => {
 
       expect(result.items[0]).toMatchObject({
         deleteReason: 'user',
+        verificationCode: 'ABCD-EFGH-JKMN-PQRS',
         purgeAt: new Date(deletedAt.getTime() + 30 * 24 * 60 * 60 * 1000),
       });
     });

@@ -192,6 +192,8 @@ export class JourneysService {
                 deletedAt: row.deletedAt,
                 deleteReason: row.deleteReason,
                 replacedById: row.replacedById,
+                // Muestro el código con el mismo formato que ya usa share-status.
+                verificationCode: formatVerificationCode(row.verificationCode),
                 // Fecha en que se borra definitivamente.
                 purgeAt: row.deletedAt ? new Date(row.deletedAt.getTime() + TRASH_RETENTION_MS) : null,
             }))
