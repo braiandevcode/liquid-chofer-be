@@ -195,11 +195,7 @@ export class AuthService {
     return { user: { ...this.usersService.toProfile(user), hasPassword } };
   }
 
-
-
   async refresh(refreshTokenRaw: string | undefined, response: Response): Promise<{ accessToken: string }> {
-    // TEMPORAL (diagnostico): borrar despues. Solo indica si llego la cookie, nunca su valor.
-    this.logger.log(`refresh: cookie=${refreshTokenRaw ? 'si' : 'no'}`);
     if (!refreshTokenRaw) throw new UnauthorizedException('No hay sesión para renovar.');
 
     try {

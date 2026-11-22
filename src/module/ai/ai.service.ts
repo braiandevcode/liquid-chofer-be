@@ -35,6 +35,7 @@ import {
   buildConversationImageFileName,
   buildConversationImageFolder,
   buildConversationImageTags,
+  buildConversationUserPrefix,
   conversationFolderFromPublicId,
 } from './conversation-image-path.js';
 
@@ -551,7 +552,7 @@ export class AiService {
     }
 
     // Las imagenes ya se borraron; quito la carpeta (vacia), derivada de los public_id.
-    const userPrefix: string = `liquid-chofer/users/${userId}/`;
+    const userPrefix: string = buildConversationUserPrefix(userId);
     const folders: Set<string> = new Set(
       publicIds
         .map((publicId) => conversationFolderFromPublicId(publicId))

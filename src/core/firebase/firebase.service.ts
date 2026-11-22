@@ -1,7 +1,50 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { initializeApp, cert, getApps, getApp, App } from 'firebase-admin/app';
+import { initializeApp, getApps, getApp, App } from 'firebase-admin/app';
+import type { Credential } from 'firebase-admin/app';
 import { Auth, getAuth } from 'firebase-admin/auth';
+import { JWT } from 'google-auth-library';
+
+// Los mismos scopes que firebase-admin usa para sus credenciales de cuenta de servicio.
+const FIREBASE_SCOPES: readonly string[] = [
+  'https://www.googleapis.com/auth/cloud-platform',
+  'https://www.googleapis.com/auth/firebase.database',
+  'https://www.googleapis.com/auth/firebase.messaging',
+  'https://www.googleapis.com/auth/identitytoolkit',
+  'https://www.googleapis.com/auth/userinfo.email',
+];
+
+// Equivalente a cert() de firebase-admin, pero construido con JWT: el factory
+// cert() usa GoogleAuth.fromJSON(), que esta deprecado por google-auth-library.
+const buildServiceAccountCredential = (
+  clientEmail: string,
+  privateKey: string,
+): Credential => {
+  const jwtClient = new JWT({
+    email: clientEmail,
+    key: privateKey,
+    scopes: [...FIREBASE_SCOPES],
+  });
+
+  return {
+    async getAccessToken() {
+      const { token } = await jwtClient.getAccessToken();
+      if (typeof token !== 'string' || !token) {
+        throw new Error('No se pudo obtener el access token de Firebase.');
+      }
+
+      const expiryDate = jwtClient.credentials.expiry_date;
+      if (typeof expiryDate !== 'number') {
+        throw new Error('No se pudo determinar la expiración del access token de Firebase.');
+      }
+
+      return {
+        access_token: token,
+        expires_in: Math.floor((expiryDate - Date.now()) / 1000),
+      };
+    },
+  };
+};
 
 // Servicio que inicializa y expone firebase-admin de forma segura.
 // Las credenciales se leen de variables de entorno (nunca hardcoded).
@@ -26,13 +69,11 @@ export class FirebaseService implements OnModuleInit {
     const rawPrivateKey = this.configService.getOrThrow<string>('FIREBASE_PRIVATE_KEY');
 
     try {
-      this.firebaseApp = initializeApp({
-        credential: cert({
-          projectId,
-          clientEmail,
-          privateKey: this.normalizePrivateKey(rawPrivateKey),
-        }),
-      });
+      const credential = buildServiceAccountCredential(
+        clientEmail,
+        this.normalizePrivateKey(rawPrivateKey),
+      );
+      this.firebaseApp = initializeApp({ credential, projectId });
     } catch (error) {
       this.logger.error(
         'No se pudo inicializar Firebase. Verificá las credenciales.',
